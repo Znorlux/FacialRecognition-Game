@@ -111,7 +111,7 @@ def capture_direction_and_gesture():
 
                 # Calcular la dirección del gesto
                 gesture_direction = math.atan2(index_y - wrist_y, index_x - wrist_x)
-                angle_threshold = 0.35  # Ajusta este umbral según tus necesidades
+                angle_threshold = 0.35 
                 threshold = 50
 
                # Verificar el gesto de pistola izquierda
@@ -151,6 +151,6 @@ def capture_direction_and_gesture():
     video_capture.release()
     cv2.destroyAllWindows()
 
-#direction, gesture = capture_direction_and_gesture()
-#print("Dirección: ", direction)
+direction, gesture = capture_direction_and_gesture()
+print("Dirección: ", direction)
 #print("Gesto: ", gesture)
