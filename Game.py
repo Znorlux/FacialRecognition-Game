@@ -1,3 +1,8 @@
+'''
+python3.10 -m pip install mediapipe
+python3.10 -m pip install colorama
+pip install numpy
+'''
 import random
 import time
 import FacialRecognition
@@ -187,7 +192,14 @@ def get_weapon_attack():
         print("No haz hecho un gesto correcto, vuelve a intentarlo")
         get_weapon_attack()
 
-
+'''
+ ██████╗  █████╗ ███╗   ███╗███████╗
+██╔════╝ ██╔══██╗████╗ ████║██╔════╝
+██║  ███╗███████║██╔████╔██║█████╗  
+██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  
+╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
+ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝                                   
+'''
 while True:
     player = game.player
     print("Mira a la direccion a la que quieras atacar y presiona 'q' cuando estes listo")
