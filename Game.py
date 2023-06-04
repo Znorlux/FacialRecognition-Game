@@ -1,6 +1,8 @@
 import random
 import time
-import FR2
+import FacialRecognition
+from colorama import Fore, Style
+
 
 #Falta añadir los 3 tipos de arma y mejorar la precision del reconocimiento
 class Game:
@@ -56,7 +58,7 @@ class Game:
         #Revisamos si el jugador o mounstruo entró a una casilla donde habia comida para aumentarle su vida
         elif isinstance(self.map[y2][x2], Food):
             mover.health += 10
-            print("Tu vida ha aumentado 10 puntos!")
+            print(Fore.GREEN + "Tu vida ha aumentado 10 puntos!" + Style.RESET_ALL)
         elif isinstance(self.map[y2][x2], Monster):
             player.health -= 10
             print("No te acerques al mounstruo si no le vas a disparar! 🤨\nAcabas de perder 10 de vida")
@@ -64,7 +66,7 @@ class Game:
         #Revisamos si el mounstruo iba a ponerse en la casilla donde estaba el jugador (lo que significa que lo ataca)
         elif isinstance(self.map[y2][x2], Player):
             player.health -= 10
-            print("El mounstruo atacó al jugador, ahora la vida del jugador es: ", player.health)
+            print("El mounstruo atacó al jugador, ahora la vida del jugador es: ", Fore.RED + str(player.health) + Style.RESET_ALL)
             return #Retornamos y no posicionamos al mounstruo en las coordenadas del jugador porque sino desaparece
 
         #Asignar nuevas posiciones
@@ -120,7 +122,7 @@ class Game:
 
     def attack_monster(self, weapon):
         self.monster.health -= weapon.damage
-        print("Haz atacado al mounstruo!, ahora su vida es de ",self.monster.health)
+    print("Haz atacado al monstruo! Ahora su vida es de", Fore.RED + str(self.monster.health) + Style.RESET_ALL)
 
 class Player:
     def __init__(self, x, y):
@@ -147,34 +149,73 @@ class Food(Item):
 class Weapon(Item):
     def __init__(self, damage,symbol):
         self.damage = damage
-        self.symbol = symbol #
+        self.symbol = symbol 
 
 game = Game(6)
 game.generate_player()
 game.generate_monster()
-game.generate_items(7)
+game.generate_items(12)
 game.display_map()
+
+def get_weapon_attack():
+    direction, gesture = FacialRecognition.capture_direction_and_gesture()
+    weapon_dict = {weapon: weapon.symbol for weapon in player.inventory}
+    if gesture == "Pulgar hacia arriba (Granada)":
+        if "💣" in weapon_dict.values():
+            #Como si tiene una granada en su inventario, obtenemos el objeto
+            weapon = next(key for key, value in weapon_dict.items() if value == "💣")
+            game.attack_monster(weapon)
+            player.inventory.remove(weapon) #Finalmente borramos el arma  ya usada, del inventario del jugador
+        else:
+            print("No tienes ninguna granada en tu inventario, vuelve a intentarlo!")
+            get_weapon_attack()
+
+    elif gesture == "Pistola":
+        if "🔫" in weapon_dict.values():
+            weapon = next(key for key, value in weapon_dict.items() if value == "🔫" )
+            game.attack_monster(weapon)
+            player.inventory.remove(weapon)
+        else:
+            print("No tienes ninguna pistola en tu inventario, vuelve a intentarlo!")
+            get_weapon_attack()
+    elif gesture == "Dos dedos horizontales (Fusil)":
+        if "🔦" in weapon_dict.values():
+            weapon = next(key for key, value in weapon_dict.items() if value == "🔦")
+            game.attack_monster(weapon)
+            player.inventory.remove(weapon)
+        else:
+            print("No tienes ningún fusil en tu inventario, vuelve a intentarlo!")
+            get_weapon_attack()
+    else:
+        print("No haz hecho un gesto correcto, vuelve a intentarlo")
+        get_weapon_attack()
+
 
 while True:
     player = game.player
+
     #Revisamos si el jugador dispone de algun arma en su inventario
     if len(player.inventory) != 0:
         print("Actualmente dispones de lo siguiente en tu inventario: ")
-        print(",".join(weapon.symbol) for weapon in player.inventory)
+        weapons = [weapon.symbol for weapon in player.inventory] #Sacamos los simbolos de las armas para mostrarlos
+        print(",".join(weapons))
         if (game.check_attack_status()):
             attack = input("Deseas atacar al mounstruo con tu arma? (s/n): ").lower()
             if attack == "s":
-                game.attack_monster(player.inventory[0])
-                #Como ya usó el arma, la borraremos de su inventario
-                player.inventory.pop()
+                print("A continuacion realiza el gesto correspondiente al arma que quieres usar")
+                #Le pedimos al usuario que utilice un arma
+                get_weapon_attack()
+                #El usuario podrá hacer su movimiento luego de atacar
+                print("Haz atacado bien!, realiza tu siguiente movimiento")
+
                 
     #Obtenemos la direccion a la que se moverá el jugador con MediaPipe
-    direction, gesture = FR2.capture_direction_and_gesture() #Cuando MediaPipe detecte la direccion a la que quieres ir, debes
+    direction, gesture = FacialRecognition.capture_direction_and_gesture() #Cuando MediaPipe detecte la direccion a la que quieres ir, debes
                                                              #presionar Q para que sea leida, y asi cada que hagas un movimiento
     while direction == "Frente":
             print("Debes mirar hacia alguna direccion, moverse hacia al frente no es una opción")
-            direction, gesture = FR2.capture_direction_and_gesture()
-
+            direction, gesture = FacialRecognition.capture_direction_and_gesture()
+        
     game.move_player(direction)                              
     print("Tu vida actual es: ", player.health)
     game.display_map()
