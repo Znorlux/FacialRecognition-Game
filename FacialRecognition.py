@@ -152,7 +152,7 @@ def capture_direction_and_gesture():
                     # Dibujar las conexiones entre los puntos de referencia de las manos
                     mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
 
-            cv2.imshow('Facemesh', frame)
+            cv2.imshow('Game Webcam', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 return direction, gesture_text
 

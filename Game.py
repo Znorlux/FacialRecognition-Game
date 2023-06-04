@@ -2,9 +2,6 @@ import random
 import time
 import FacialRecognition
 from colorama import Fore, Style
-
-
-#Falta añadir los 3 tipos de arma y mejorar la precision del reconocimiento
 class Game:
     def __init__(self, size):
         self.size = size
@@ -122,7 +119,7 @@ class Game:
 
     def attack_monster(self, weapon):
         self.monster.health -= weapon.damage
-    print("Haz atacado al monstruo! Ahora su vida es de", Fore.RED + str(self.monster.health) + Style.RESET_ALL)
+        print(Fore.RED + "Haz atacado al monstruo! Ahora su vida es de", Fore.RED + str(self.monster.health) + Style.RESET_ALL)
 
 class Player:
     def __init__(self, x, y):
@@ -136,7 +133,7 @@ class Monster:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.health = 100
+        self.health = 40
 
 class Item:
     def __init__(self):
@@ -193,7 +190,7 @@ def get_weapon_attack():
 
 while True:
     player = game.player
-
+    print("Mira a la direccion a la que quieras atacar y presiona 'q' cuando estes listo")
     #Revisamos si el jugador dispone de algun arma en su inventario
     if len(player.inventory) != 0:
         print("Actualmente dispones de lo siguiente en tu inventario: ")
@@ -207,7 +204,11 @@ while True:
                 get_weapon_attack()
                 #El usuario podrá hacer su movimiento luego de atacar
                 print("Haz atacado bien!, realiza tu siguiente movimiento")
-
+                #Comprobamos de una si el jugador mató o no al Mounstruo
+                if game.monster.health <= 0:
+                    print("El juego ha terminado!")
+                    print("El ganador es el jugador!")
+                    break 
                 
     #Obtenemos la direccion a la que se moverá el jugador con MediaPipe
     direction, gesture = FacialRecognition.capture_direction_and_gesture() #Cuando MediaPipe detecte la direccion a la que quieres ir, debes
@@ -219,7 +220,7 @@ while True:
     game.move_player(direction)                              
     print("Tu vida actual es: ", player.health)
     game.display_map()
-    
+
     #Se procede con el movimiento aleatorio del mounstruo
     print("Preparando movimiento del mounstruo...")
     time.sleep(3)
@@ -229,7 +230,11 @@ while True:
 
 
     #Comprobamos si la vida del jugador o del mounstruo es 0 o menor, para asi acabar con el ciclo while True, sino se repite
-    if game.player.health <= 0 or game.monster.health <= 0:
+    if game.player.health <= 0:
         print("El juego ha terminado!")
-        print("El ganador es: ")
+        print("El ganador es el mounstruo!")
         break
+    elif game.monster.health <= 0:
+        print("El juego ha terminado!")
+        print("El ganador es el jugador!")
+        break 
