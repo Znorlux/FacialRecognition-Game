@@ -1,4 +1,5 @@
 '''
+Para probar este juego es necesario tener la version 3.10 de python
 python3.10 -m pip install mediapipe
 python3.10 -m pip install colorama
 pip install numpy
