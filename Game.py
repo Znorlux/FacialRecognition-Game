@@ -127,6 +127,21 @@ class Game:
         self.monster.health -= weapon.damage
         print(Fore.RED + "Haz atacado al monstruo! Ahora su vida es de", Fore.RED + str(self.monster.health) + Style.RESET_ALL)
 
+    def check_food_nearby(self):
+        player_x, player_y = self.player.x, self.player.y
+        directions = [(0, -1, "Arriba"), (0, 1, "Abajo"), (-1, 0, "Izquierda"), (1, 0, "Derecha")]
+
+        for direction in directions:
+            dx, dy, direction_name = direction
+            x, y = player_x + dx, player_y + dy
+
+            # Verificar si las coordenadas están dentro de los límites del mapa
+            if 0 <= x < self.size and 0 <= y < self.size:
+                if isinstance(self.map[y][x], Food):
+                    return True, direction_name
+
+        return False, None
+
 class Player:
     def __init__(self, x, y):
         #x,y seran las coordenadas
@@ -161,7 +176,7 @@ game.generate_items(12)
 game.display_map()
 
 def get_weapon_attack():
-    direction, gesture = FacialRecognition.capture_direction_and_gesture()
+    direction, gesture, mouth_status = FacialRecognition.capture_direction_and_gesture()
     weapon_dict = {weapon: weapon.symbol for weapon in player.inventory}
     if gesture == "Pulgar hacia arriba (Granada)":
         if "💣" in weapon_dict.values():
@@ -192,6 +207,14 @@ def get_weapon_attack():
     else:
         print("No haz hecho un gesto correcto, vuelve a intentarlo")
         get_weapon_attack()
+
+def move_monster():
+    #Se procede con el movimiento aleatorio del mounstruo
+    print("Preparando movimiento del mounstruo...")
+    time.sleep(3)
+    game.move_monster()
+    print("La vida del mounstruo es: ", game.monster.health)
+    game.display_map()
 
 '''
  ██████╗  █████╗ ███╗   ███╗███████╗
@@ -224,23 +247,29 @@ while True:
                     break 
                 
     #Obtenemos la direccion a la que se moverá el jugador con MediaPipe
-    direction, gesture = FacialRecognition.capture_direction_and_gesture() #Cuando MediaPipe detecte la direccion a la que quieres ir, debes
+    direction, gesture, mouth_status = FacialRecognition.capture_direction_and_gesture() #Cuando MediaPipe detecte la direccion a la que quieres ir, debes
                                                              #presionar Q para que sea leida, y asi cada que hagas un movimiento
-    while direction == "Frente":
+    if mouth_status == "Abierta":
+        food_nearby, food_direction = game.check_food_nearby()
+        if food_nearby == True:
+            # El jugador se moverá en la dirección de la comida
+            print("Comiendo la comida en dirección:", food_direction)
+            game.move_player(food_direction)
+        else:
+            print("No hay ninguna comida cerca, realizaras el movimiento que indicaste")
+
+    elif direction == "Frente":
+        while direction == "Frente":
             print("Debes mirar hacia alguna direccion, moverse hacia al frente no es una opción")
-            direction, gesture = FacialRecognition.capture_direction_and_gesture()
-        
-    game.move_player(direction)                              
+            direction, gesture, mouth_status = FacialRecognition.capture_direction_and_gesture()
+    else:
+        game.move_player(direction) 
+                                     
     print("Tu vida actual es: ", player.health)
     game.display_map()
 
-    #Se procede con el movimiento aleatorio del mounstruo
-    print("Preparando movimiento del mounstruo...")
-    time.sleep(3)
-    game.move_monster()
-    print("La vida del mounstruo es: ", game.monster.health)
-    game.display_map()
-
+    #Se procede con el movimiento del mounstruo
+    move_monster()
 
     #Comprobamos si la vida del jugador o del mounstruo es 0 o menor, para asi acabar con el ciclo while True, sino se repite
     if game.player.health <= 0:

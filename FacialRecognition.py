@@ -28,7 +28,28 @@ def capture_direction_and_gesture():
 
             if results.multi_face_landmarks:
                 for face_landmarks in results.multi_face_landmarks:
+                    #Deteccion de la boca
+                    # Obtener las coordenadas de los puntos clave relevantes para la boca
+                    mouth_center = face_landmarks.landmark[314]  # Punto clave del centro de la boca
+                    mouth_center_x = int(mouth_center.x * frame.shape[1])
+                    mouth_center_y = int(mouth_center.y * frame.shape[0])
 
+                    # Calculamos la distancia entre el centro de la boca y el punto clave del labio superior
+                    upper_lip = face_landmarks.landmark[13]  # Punto clave del labio superior
+                    upper_lip_x = int(upper_lip.x * frame.shape[1])
+                    upper_lip_y = int(upper_lip.y * frame.shape[0])
+                    distance = math.sqrt((mouth_center_x - upper_lip_x)**2 + (mouth_center_y - upper_lip_y)**2)
+
+                    # Definimos un umbral o limite para la detección de boca abierta
+                    threshold_mouth = 25
+
+                    # Verificar si la boca está abierta
+                    if distance > threshold_mouth:
+                        mouth_status = "Abierta"
+                    else:
+                        mouth_status = "Cerrada"
+                    
+                    #Deteccion Facial
                     rango_superior = 0.40
                     rango_inferior = 0.35
 
@@ -93,6 +114,8 @@ def capture_direction_and_gesture():
 
                     # Mostrar la dirección en la pantalla
                     cv2.putText(frame, f"Direccion: {direction}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    cv2.putText(frame, f"Estado de la boca: {mouth_status}", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
             #here
             # Procesar el frame con Mediapipe para el seguimiento de manos
             results = hand_tracking.process(frame_rgb)
@@ -140,7 +163,7 @@ def capture_direction_and_gesture():
                         direction = "Horizontal"
                         gesture_text = "Dos dedos horizontales (Fusil)"
 
-                    cv2.putText(frame, f"Arma: {gesture_text}", (30, 64), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.putText(frame, f"Arma: {gesture_text}", (30, 87), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
                     #Estetica
 
@@ -152,9 +175,9 @@ def capture_direction_and_gesture():
                     # Dibujar las conexiones entre los puntos de referencia de las manos
                     mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
 
-            cv2.imshow('Game Webcam', frame)
+            cv2.imshow('Game Webcam', frame) #Mostrar una ventana que mostrará el video
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                return direction, gesture_text
+                return direction, gesture_text, mouth_status
 
     cap.release()
     cv2.destroyAllWindows()
